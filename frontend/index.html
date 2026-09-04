@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>AI Fraud Detection System</title>
+
+    <link rel="stylesheet" href="style.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
+<nav class="navbar">
+
+    <div class="logo">
+        <span>🛡️</span>
+        FraudGuard AI
+    </div>
+
+    <div class="nav-status">
+        <span class="status-dot"></span>
+        AI Engine Online
+    </div>
+
+</nav>
+
+<main class="container">
+
+    <section class="hero">
+
+        <div>
+            <p class="tag">
+                AI-POWERED PAYMENT SECURITY
+            </p>
+
+            <h1>
+                Real-Time Fraud Detection
+            </h1>
+
+            <p class="subtitle">
+                Analyze payment transactions using machine learning
+                and identify suspicious activity instantly.
+            </p>
+        </div>
+
+    </section>
+
+    <section class="stats">
+
+        <div class="stat-card">
+            <div class="stat-icon">💳</div>
+            <div>
+                <p>Total Transactions</p>
+                <h2 id="totalTransactions">0</h2>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon">🚨</div>
+            <div>
+                <p>Fraud Detected</p>
+                <h2 id="fraudDetected">0</h2>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon">🔴</div>
+            <div>
+                <p>High Risk</p>
+                <h2 id="highRisk">0</h2>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon">🛡️</div>
+            <div>
+                <p>Protected</p>
+                <h2 id="protectedTransactions">0</h2>
+            </div>
+        </div>
+
+    </section>
+
+    <section class="chart-container">
+
+        <h3>Fraud Risk Distribution</h3>
+
+        <canvas id="riskChart" width="700" height="350"></canvas>
+
+    </section>
+
+    <section class="dashboard-grid">
+
+        <div class="card transaction-card">
+
+            <div class="card-header">
+
+                <div>
+                    <p class="small-title">
+                        TRANSACTION ANALYSIS
+                    </p>
+
+                    <h2>
+                        Check a Payment
+                    </h2>
+                </div>
+
+                <span class="ai-badge">
+                    AI
+                </span>
+
+            </div>
+
+            <div class="form-grid">
+
+                <div class="input-group">
+
+                    <label>Transaction Amount</label>
+
+                    <div class="input-wrapper">
+
+                        <span>₹</span>
+
+                        <input
+                            type="number"
+                            id="amount"
+                            placeholder="85000"
+                        >
+
+                    </div>
+
+                </div>
+
+                <div class="input-group">
+
+                    <label>Account Age</label>
+
+                    <div class="input-wrapper">
+
+                        <input
+                            type="number"
+                            id="accountAge"
+                            placeholder="30"
+                        >
+
+                        <span>days</span>
+
+                    </div>
+
+                </div>
+
+                <div class="input-group">
+
+                    <label>Failed Attempts</label>
+
+                    <input
+                        type="number"
+                        id="failedAttempts"
+                        placeholder="0"
+                    >
+
+                </div>
+
+                <div class="input-group">
+
+                    <label>Transaction Hour</label>
+
+                    <input
+                        type="number"
+                        id="transactionHour"
+                        min="0"
+                        max="23"
+                        placeholder="14"
+                    >
+
+                    <small>0 - 23</small>
+
+                </div>
+
+                <div class="input-group">
+
+                    <label>Previous Transactions</label>
+
+                    <input
+                        type="number"
+                        id="previousTransactions"
+                        placeholder="25"
+                    >
+
+                </div>
+
+                <div class="input-group">
+
+                    <label>Device</label>
+
+                    <select id="deviceChanged">
+
+                        <option value="0">
+                            Existing Device
+                        </option>
+
+                        <option value="1">
+                            New Device
+                        </option>
+
+                    </select>
+
+                </div>
+
+                <div class="input-group">
+
+                    <label>Location</label>
+
+                    <select id="locationChanged">
+
+                        <option value="0">
+                            Normal Location
+                        </option>
+
+                        <option value="1">
+                            New Location
+                        </option>
+
+                    </select>
+
+                </div>
+
+            </div>
+
+            <button
+                type="button"
+                class="analyze-btn"
+                onclick="analyzeTransaction()"
+            >
+                <span>✨</span>
+                Analyze Transaction
+            </button>
+
+            <div
+                id="loading"
+                class="loading hidden"
+            >
+                Analyzing transaction with AI...
+            </div>
+
+        </div>
+
+        <div class="card result-card">
+
+            <div class="card-header">
+
+                <div>
+                    <p class="small-title">
+                        AI DECISION
+                    </p>
+
+                    <h2>
+                        Risk Analysis
+                    </h2>
+                </div>
+
+                <span id="resultIcon">
+                    🛡️
+                </span>
+
+            </div>
+
+            <div
+                id="emptyResult"
+                class="empty-result"
+            >
+
+                <div class="empty-icon">
+                    🤖
+                </div>
+
+                <h3>
+                    Ready to Analyze
+                </h3>
+
+                <p>
+                    Enter transaction details and click
+                    "Analyze Transaction".
+                </p>
+
+            </div>
+
+            <div
+                id="result"
+                class="result hidden"
+            >
+
+                <div class="risk-score">
+
+                    <div
+                        id="riskCircle"
+                        class="risk-circle"
+                    >
+
+                        <span id="riskScore">
+                            0%
+                        </span>
+
+                        <small>
+                            FRAUD RISK
+                        </small>
+
+                    </div>
+
+                </div>
+
+                <div
+                    id="riskBadge"
+                    class="risk-badge"
+                >
+                    LOW RISK
+                </div>
+
+                <div
+                    id="anomalyBadge"
+                    class="anomaly-badge hidden"
+                >
+                    ⚠️ Anomaly Detected
+                </div>
+
+                <div class="action-box">
+
+                    <span>
+                        Recommended Action
+                    </span>
+
+                    <strong id="action">
+                        APPROVE
+                    </strong>
+
+                </div>
+
+                <div class="reasons">
+
+                    <h3>
+                        Risk Factors
+                    </h3>
+
+                    <ul id="reasonsList"></ul>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+    <section class="transactions-section">
+
+        <div class="card-header">
+
+            <div>
+
+                <p class="small-title">
+                    TRANSACTION MONITORING
+                </p>
+
+                <h2>
+                    Recent Transactions
+                </h2>
+
+            </div>
+
+        </div>
+
+        <div class="transaction-controls">
+
+            <input
+                type="text"
+                id="transactionSearch"
+                placeholder="Search transactions..."
+            >
+
+            <select id="riskFilter">
+
+                <option value="ALL">All Risks</option>
+                <option value="HIGH">High Risk</option>
+                <option value="MEDIUM">Medium Risk</option>
+                <option value="LOW">Low Risk</option>
+
+            </select>
+
+            <select id="actionFilter">
+
+                <option value="ALL">All Actions</option>
+                <option value="BLOCK">Blocked</option>
+                <option value="REVIEW">Review</option>
+                <option value="APPROVE">Approved</option>
+
+            </select>
+
+        </div>
+
+        <div class="table-container">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+                        <th>ID</th>
+                        <th>Amount</th>
+                        <th>Risk</th>
+                        <th>Fraud Probability</th>
+                        <th>Action</th>
+                    </tr>
+
+                </thead>
+
+                <tbody id="transactionTable">
+
+                    <tr>
+                        <td colspan="5" class="no-data">
+                            No transactions yet.
+                        </td>
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+</main>
+
+<footer>
+
+    <p>
+        FraudGuard AI • AI-Based Payment Fraud Detection
+    </p>
+
+</footer>
+
+<script src="script.js"></script>
+
+</body>
+</html>
