@@ -31,23 +31,18 @@
 <main class="container">
 
     <section class="hero">
-
         <div>
-            <p class="tag">
-                AI-POWERED PAYMENT SECURITY
-            </p>
+            <p class="tag">AI-POWERED PAYMENT SECURITY</p>
 
-            <h1>
-                Real-Time Fraud Detection
-            </h1>
+            <h1>Real-Time Fraud Detection</h1>
 
             <p class="subtitle">
                 Analyze payment transactions using machine learning
                 and identify suspicious activity instantly.
             </p>
         </div>
-
     </section>
+
 
     <section class="stats">
 
@@ -85,6 +80,7 @@
 
     </section>
 
+
     <section class="chart-container">
 
         <h3>Fraud Risk Distribution</h3>
@@ -93,27 +89,25 @@
 
     </section>
 
+
     <section class="dashboard-grid">
+
+        <!-- TRANSACTION INPUT -->
 
         <div class="card transaction-card">
 
             <div class="card-header">
 
                 <div>
-                    <p class="small-title">
-                        TRANSACTION ANALYSIS
-                    </p>
+                    <p class="small-title">TRANSACTION ANALYSIS</p>
 
-                    <h2>
-                        Check a Payment
-                    </h2>
+                    <h2>Check a Payment</h2>
                 </div>
 
-                <span class="ai-badge">
-                    AI
-                </span>
+                <span class="ai-badge">AI</span>
 
             </div>
+
 
             <div class="form-grid">
 
@@ -135,6 +129,7 @@
 
                 </div>
 
+
                 <div class="input-group">
 
                     <label>Account Age</label>
@@ -153,6 +148,7 @@
 
                 </div>
 
+
                 <div class="input-group">
 
                     <label>Failed Attempts</label>
@@ -164,6 +160,7 @@
                     >
 
                 </div>
+
 
                 <div class="input-group">
 
@@ -181,6 +178,7 @@
 
                 </div>
 
+
                 <div class="input-group">
 
                     <label>Previous Transactions</label>
@@ -192,6 +190,7 @@
                     >
 
                 </div>
+
 
                 <div class="input-group">
 
@@ -210,6 +209,7 @@
                     </select>
 
                 </div>
+
 
                 <div class="input-group">
 
@@ -231,14 +231,16 @@
 
             </div>
 
+
             <button
                 type="button"
                 class="analyze-btn"
-                onclick="analyzeTransaction()"
+                onclick="analyzeTransaction(event)"
             >
                 <span>✨</span>
                 Analyze Transaction
             </button>
+
 
             <div
                 id="loading"
@@ -249,11 +251,15 @@
 
         </div>
 
+
+        <!-- RESULT -->
+
         <div class="card result-card">
 
             <div class="card-header">
 
                 <div>
+
                     <p class="small-title">
                         AI DECISION
                     </p>
@@ -261,6 +267,7 @@
                     <h2>
                         Risk Analysis
                     </h2>
+
                 </div>
 
                 <span id="resultIcon">
@@ -268,6 +275,9 @@
                 </span>
 
             </div>
+
+
+            <!-- EMPTY -->
 
             <div
                 id="emptyResult"
@@ -288,6 +298,9 @@
                 </p>
 
             </div>
+
+
+            <!-- RESULT -->
 
             <div
                 id="result"
@@ -313,6 +326,7 @@
 
                 </div>
 
+
                 <div
                     id="riskBadge"
                     class="risk-badge"
@@ -320,12 +334,14 @@
                     LOW RISK
                 </div>
 
+
                 <div
                     id="anomalyBadge"
                     class="anomaly-badge hidden"
                 >
                     ⚠️ Anomaly Detected
                 </div>
+
 
                 <div class="action-box">
 
@@ -338,6 +354,7 @@
                     </strong>
 
                 </div>
+
 
                 <div class="reasons">
 
@@ -354,6 +371,9 @@
         </div>
 
     </section>
+
+
+    <!-- TRANSACTIONS -->
 
     <section class="transactions-section">
 
@@ -373,6 +393,7 @@
 
         </div>
 
+
         <div class="transaction-controls">
 
             <input
@@ -381,25 +402,50 @@
                 placeholder="Search transactions..."
             >
 
+
             <select id="riskFilter">
 
-                <option value="ALL">All Risks</option>
-                <option value="HIGH">High Risk</option>
-                <option value="MEDIUM">Medium Risk</option>
-                <option value="LOW">Low Risk</option>
+                <option value="ALL">
+                    All Risks
+                </option>
+
+                <option value="HIGH">
+                    High Risk
+                </option>
+
+                <option value="MEDIUM">
+                    Medium Risk
+                </option>
+
+                <option value="LOW">
+                    Low Risk
+                </option>
 
             </select>
 
+
             <select id="actionFilter">
 
-                <option value="ALL">All Actions</option>
-                <option value="BLOCK">Blocked</option>
-                <option value="REVIEW">Review</option>
-                <option value="APPROVE">Approved</option>
+                <option value="ALL">
+                    All Actions
+                </option>
+
+                <option value="BLOCK">
+                    Blocked
+                </option>
+
+                <option value="REVIEW">
+                    Review
+                </option>
+
+                <option value="APPROVE">
+                    Approved
+                </option>
 
             </select>
 
         </div>
+
 
         <div class="table-container">
 
@@ -408,21 +454,29 @@
                 <thead>
 
                     <tr>
+
                         <th>ID</th>
                         <th>Amount</th>
                         <th>Risk</th>
                         <th>Fraud Probability</th>
                         <th>Action</th>
+
                     </tr>
 
                 </thead>
 
+
                 <tbody id="transactionTable">
 
                     <tr>
-                        <td colspan="5" class="no-data">
+
+                        <td
+                            colspan="5"
+                            class="no-data"
+                        >
                             No transactions yet.
                         </td>
+
                     </tr>
 
                 </tbody>
@@ -435,6 +489,7 @@
 
 </main>
 
+
 <footer>
 
     <p>
@@ -442,6 +497,7 @@
     </p>
 
 </footer>
+
 
 <script src="script.js"></script>
 

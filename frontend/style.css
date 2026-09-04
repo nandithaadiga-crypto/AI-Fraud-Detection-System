@@ -443,6 +443,11 @@ body {
 
 .result {
     text-align: center;
+    display: block;
+}
+
+.result.hidden {
+    display: none !important;
 }
 
 .risk-score {

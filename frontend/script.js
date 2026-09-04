@@ -1,7 +1,11 @@
+// ==========================================
+// AI FRAUD DETECTION SYSTEM
+// FRONTEND JAVASCRIPT
+// ==========================================
+
 const API_URL = "http://127.0.0.1:5000";
 
 let allTransactions = [];
-let riskChart = null;
 
 
 // ==========================================
@@ -9,6 +13,9 @@ let riskChart = null;
 // ==========================================
 
 document.addEventListener("DOMContentLoaded", () => {
+
+    console.log("AI Fraud Detection System loaded.");
+
     loadStatistics();
     loadTransactions();
 
@@ -27,6 +34,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (action) {
         action.addEventListener("change", filterTransactions);
     }
+
 });
 
 
@@ -35,6 +43,12 @@ document.addEventListener("DOMContentLoaded", () => {
 // ==========================================
 
 async function analyzeTransaction() {
+
+    console.log("Analyze button clicked.");
+
+    // ------------------------------------------
+    // GET INPUT VALUES
+    // ------------------------------------------
 
     const amount = Number(
         document.getElementById("amount").value
@@ -65,9 +79,9 @@ async function analyzeTransaction() {
     );
 
 
-    // ==========================================
+    // ------------------------------------------
     // VALIDATION
-    // ==========================================
+    // ------------------------------------------
 
     if (
         amount <= 0 ||
@@ -77,10 +91,16 @@ async function analyzeTransaction() {
         transactionHour > 23 ||
         previousTransactions < 0
     ) {
+
         alert("Please enter valid transaction details.");
+
         return;
     }
 
+
+    // ------------------------------------------
+    // CREATE REQUEST DATA
+    // ------------------------------------------
 
     const transactionData = {
 
@@ -101,20 +121,37 @@ async function analyzeTransaction() {
     };
 
 
-    // ==========================================
-    // LOADING
-    // ==========================================
+    console.log(
+        "Sending transaction:",
+        transactionData
+    );
 
-    const loading = document.getElementById("loading");
-    const result = document.getElementById("result");
-    const emptyResult = document.getElementById("emptyResult");
+
+    // ------------------------------------------
+    // GET UI ELEMENTS
+    // ------------------------------------------
+
+    const loading =
+        document.getElementById("loading");
+
+    const resultContainer =
+        document.getElementById("result");
+
+    const emptyResult =
+        document.getElementById("emptyResult");
+
+
+    // ------------------------------------------
+    // SHOW LOADING
+    // ------------------------------------------
 
     if (loading) {
         loading.classList.remove("hidden");
     }
 
-    if (result) {
-        result.classList.add("hidden");
+    if (resultContainer) {
+        resultContainer.classList.add("hidden");
+        resultContainer.style.display = "none";
     }
 
     if (emptyResult) {
@@ -122,11 +159,11 @@ async function analyzeTransaction() {
     }
 
 
-    try {
+    // ------------------------------------------
+    // SEND REQUEST TO FLASK
+    // ------------------------------------------
 
-        // ==========================================
-        // SEND TRANSACTION TO FLASK
-        // ==========================================
+    try {
 
         const response = await fetch(
             `${API_URL}/predict`,
@@ -142,21 +179,65 @@ async function analyzeTransaction() {
         );
 
 
-        const prediction = await response.json();
+        // ------------------------------------------
+        // CHECK RESPONSE
+        // ------------------------------------------
 
-console.log("AI Prediction:", prediction);
-//alert(JSON.stringify(prediction, null, 2));
+        if (!response.ok) {
 
-displayResult(prediction);
+            throw new Error(
+                `Server returned ${response.status}`
+            );
+
+        }
 
 
-        // ==========================================
+        // ------------------------------------------
+        // GET AI PREDICTION
+        // ------------------------------------------
+
+        const prediction =
+            await response.json();
+
+
+        console.log(
+            "AI Prediction:",
+            prediction
+        );
+
+
+        // ------------------------------------------
+        // DISPLAY RESULT
+        // ------------------------------------------
+
+        displayResult(prediction);
+
+
+        // ------------------------------------------
         // REFRESH DASHBOARD
-        // ==========================================
+        // ------------------------------------------
 
         await loadStatistics();
 
         await loadTransactions();
+
+
+        // ------------------------------------------
+        // MAKE SURE RESULT STAYS VISIBLE
+        // ------------------------------------------
+
+        if (resultContainer) {
+
+            resultContainer.classList.remove("hidden");
+
+            resultContainer.style.display = "block";
+
+        }
+
+
+        console.log(
+            "Risk Analysis displayed successfully."
+        );
 
     }
 
@@ -167,6 +248,7 @@ displayResult(prediction);
             error
         );
 
+
         alert(
             "Unable to connect to AI server.\n\n" +
             "Make sure Flask is running on port 5000."
@@ -175,6 +257,10 @@ displayResult(prediction);
     }
 
     finally {
+
+        // ------------------------------------------
+        // HIDE LOADING
+        // ------------------------------------------
 
         if (loading) {
             loading.classList.add("hidden");
@@ -189,7 +275,13 @@ displayResult(prediction);
 // DISPLAY AI RESULT
 // ==========================================
 
-function displayResult(result) {
+function displayResult(data) {
+
+    console.log(
+        "DISPLAY RESULT:",
+        data
+    );
+
 
     const resultContainer =
         document.getElementById("result");
@@ -197,221 +289,210 @@ function displayResult(result) {
     const emptyResult =
         document.getElementById("emptyResult");
 
+
+    // ------------------------------------------
+    // CHECK RESULT CONTAINER
+    // ------------------------------------------
+
+    if (!resultContainer) {
+
+        console.error(
+            "Result container not found!"
+        );
+
+        return;
+    }
+
+
+    // ------------------------------------------
+    // HIDE READY MESSAGE
+    // ------------------------------------------
+
+    if (emptyResult) {
+
+        emptyResult.classList.add("hidden");
+
+        emptyResult.style.display = "none";
+
+    }
+
+
+    // ------------------------------------------
+    // SHOW RESULT
+    // ------------------------------------------
+
+    resultContainer.classList.remove("hidden");
+
+    resultContainer.style.display = "block";
+
+
+    // ------------------------------------------
+    // RISK SCORE
+    // ------------------------------------------
+
     const riskScore =
         document.getElementById("riskScore");
 
-    const riskBadge =
-        document.getElementById("riskBadge");
-
-    const anomalyBadge =
-        document.getElementById("anomalyBadge");
-
-    const action =
-        document.getElementById("action");
-
-    const reasonsList =
-        document.getElementById("reasonsList");
-
-    const riskCircle =
-        document.getElementById("riskCircle");
-
-    const resultIcon =
-        document.getElementById("resultIcon");
-
-
-    // Show result
-
-    if (emptyResult) {
-        emptyResult.classList.add("hidden");
-    }
-
-    if (resultContainer) {
-        resultContainer.classList.remove("hidden");
-    }
-
-
-    // ==========================================
-    // FRAUD PROBABILITY
-    // ==========================================
 
     if (riskScore) {
 
         const probability =
-            Number(result.fraud_probability) || 0;
+            Number(data.fraud_probability || 0);
 
         riskScore.textContent =
-            `${probability}%`;
+            `${probability.toFixed(1)}%`;
 
     }
 
 
-    // ==========================================
+    // ------------------------------------------
     // RISK BADGE
-    // ==========================================
+    // ------------------------------------------
+
+    const riskBadge =
+        document.getElementById("riskBadge");
+
 
     if (riskBadge) {
 
         const risk =
-            result.risk || "LOW";
+            String(data.risk || "LOW")
+                .toUpperCase();
+
 
         riskBadge.textContent =
-            `${risk} RISK`;
+            risk;
 
+
+        // Remove previous classes
+
+        riskBadge.classList.remove(
+            "high",
+            "medium",
+            "low"
+        );
+
+
+        // Add correct class
 
         if (risk === "HIGH") {
 
-            riskBadge.style.background =
-                "#fee2e2";
-
-            riskBadge.style.color =
-                "#991b1b";
+            riskBadge.classList.add("high");
 
         }
 
         else if (risk === "MEDIUM") {
 
-            riskBadge.style.background =
-                "#fef3c7";
-
-            riskBadge.style.color =
-                "#92400e";
+            riskBadge.classList.add("medium");
 
         }
 
         else {
 
-            riskBadge.style.background =
-                "#dcfce7";
-
-            riskBadge.style.color =
-                "#166534";
+            riskBadge.classList.add("low");
 
         }
 
     }
 
 
-    // ==========================================
-    // ANOMALY
-    // ==========================================
-
-    if (anomalyBadge) {
-
-        if (result.anomaly_detected) {
-
-            anomalyBadge.textContent =
-                "⚠️ Anomaly Detected";
-
-            anomalyBadge.classList.remove("hidden");
-
-        }
-
-        else {
-
-            anomalyBadge.classList.add("hidden");
-
-        }
-
-    }
-
-
-    // ==========================================
+    // ------------------------------------------
     // ACTION
-    // ==========================================
+    // ------------------------------------------
+
+    const action =
+        document.getElementById("action");
+
 
     if (action) {
 
         action.textContent =
-            result.action || "APPROVE";
+            data.action || "UNKNOWN";
+
+    }
 
 
-        if (result.action === "BLOCK") {
+    // ------------------------------------------
+    // ANOMALY BADGE
+    // ------------------------------------------
 
-            action.style.color =
-                "#dc2626";
+    const anomalyBadge =
+        document.getElementById("anomalyBadge");
 
-        }
 
-        else if (result.action === "REVIEW") {
+    if (anomalyBadge) {
 
-            action.style.color =
-                "#d97706";
+        if (data.anomaly_detected) {
+
+            anomalyBadge.textContent =
+                "⚠️ Anomaly Detected";
+
+            anomalyBadge.classList.remove(
+                "hidden"
+            );
+
+            anomalyBadge.style.display =
+                "inline-block";
 
         }
 
         else {
 
-            action.style.color =
-                "#16a34a";
+            anomalyBadge.classList.add(
+                "hidden"
+            );
+
+            anomalyBadge.style.display =
+                "none";
 
         }
 
     }
 
 
-    // ==========================================
-    // RISK CIRCLE
-    // ==========================================
-
-    if (riskCircle) {
-
-        if (result.risk === "HIGH") {
-
-            riskCircle.style.borderColor =
-                "#fecaca";
-
-        }
-
-        else if (result.risk === "MEDIUM") {
-
-            riskCircle.style.borderColor =
-                "#fde68a";
-
-        }
-
-        else {
-
-            riskCircle.style.borderColor =
-                "#bbf7d0";
-
-        }
-
-    }
-
-
-    // ==========================================
+    // ------------------------------------------
     // RESULT ICON
-    // ==========================================
+    // ------------------------------------------
+
+    const resultIcon =
+        document.getElementById("resultIcon");
+
 
     if (resultIcon) {
 
-        if (result.risk === "HIGH") {
+        const risk =
+            String(data.risk || "LOW")
+                .toUpperCase();
 
-            resultIcon.textContent =
-                "🚨";
+
+        if (risk === "HIGH") {
+
+            resultIcon.textContent = "🚨";
 
         }
 
-        else if (result.risk === "MEDIUM") {
+        else if (risk === "MEDIUM") {
 
-            resultIcon.textContent =
-                "⚠️";
+            resultIcon.textContent = "⚠️";
 
         }
 
         else {
 
-            resultIcon.textContent =
-                "🛡️";
+            resultIcon.textContent = "✅";
 
         }
 
     }
 
 
-    // ==========================================
-    // RISK REASONS
-    // ==========================================
+    // ------------------------------------------
+    // REASONS
+    // ------------------------------------------
+
+    const reasonsList =
+        document.getElementById("reasonsList");
+
 
     if (reasonsList) {
 
@@ -419,11 +500,11 @@ function displayResult(result) {
 
 
         if (
-            result.reasons &&
-            result.reasons.length > 0
+            data.reasons &&
+            data.reasons.length > 0
         ) {
 
-            result.reasons.forEach(reason => {
+            data.reasons.forEach(reason => {
 
                 const li =
                     document.createElement("li");
@@ -445,17 +526,28 @@ function displayResult(result) {
             li.textContent =
                 "No suspicious activity detected.";
 
-            li.style.background =
-                "#f0fdf4";
-
-            li.style.color =
-                "#166534";
-
             reasonsList.appendChild(li);
 
         }
 
     }
+
+
+    // ------------------------------------------
+    // FINAL VISIBILITY CHECK
+    // ------------------------------------------
+
+    resultContainer.classList.remove(
+        "hidden"
+    );
+
+    resultContainer.style.display =
+        "block";
+
+
+    console.log(
+        "Risk Analysis is visible."
+    );
 
 }
 
@@ -469,8 +561,9 @@ async function loadStatistics() {
     try {
 
         const response = await fetch(
-    `${API_URL}/statistics?t=${Date.now()}`
-);
+            `${API_URL}/statistics?t=${Date.now()}`
+        );
+
 
         if (!response.ok) {
 
@@ -491,14 +584,15 @@ async function loadStatistics() {
         );
 
 
-        // ==========================================
-        // TOTAL
-        // ==========================================
+        // ------------------------------------------
+        // TOTAL TRANSACTIONS
+        // ------------------------------------------
 
         const totalTransactions =
             document.getElementById(
                 "totalTransactions"
             );
+
 
         if (totalTransactions) {
 
@@ -508,14 +602,15 @@ async function loadStatistics() {
         }
 
 
-        // ==========================================
+        // ------------------------------------------
         // FRAUD DETECTED
-        // ==========================================
+        // ------------------------------------------
 
         const fraudDetected =
             document.getElementById(
                 "fraudDetected"
             );
+
 
         if (fraudDetected) {
 
@@ -525,14 +620,15 @@ async function loadStatistics() {
         }
 
 
-        // ==========================================
+        // ------------------------------------------
         // HIGH RISK
-        // ==========================================
+        // ------------------------------------------
 
         const highRisk =
             document.getElementById(
                 "highRisk"
             );
+
 
         if (highRisk) {
 
@@ -542,14 +638,15 @@ async function loadStatistics() {
         }
 
 
-        // ==========================================
-        // PROTECTED
-        // ==========================================
+        // ------------------------------------------
+        // PROTECTED TRANSACTIONS
+        // ------------------------------------------
 
         const protectedTransactions =
             document.getElementById(
                 "protectedTransactions"
             );
+
 
         if (protectedTransactions) {
 
@@ -559,9 +656,9 @@ async function loadStatistics() {
         }
 
 
-        // ==========================================
-        // CHART
-        // ==========================================
+        // ------------------------------------------
+        // UPDATE CHART
+        // ------------------------------------------
 
         createRiskChart(
             data.high_risk || 0,
@@ -604,7 +701,6 @@ function createRiskChart(
         );
 
         return;
-
     }
 
 
@@ -629,7 +725,9 @@ function createRiskChart(
         values[2];
 
 
-    // Clear canvas
+    // ------------------------------------------
+    // CLEAR CANVAS
+    // ------------------------------------------
 
     ctx.clearRect(
         0,
@@ -639,9 +737,9 @@ function createRiskChart(
     );
 
 
-    // ==========================================
+    // ------------------------------------------
     // NO DATA
-    // ==========================================
+    // ------------------------------------------
 
     if (total === 0) {
 
@@ -657,20 +755,21 @@ function createRiskChart(
         ctx.textBaseline =
             "middle";
 
+
         ctx.fillText(
             "No transaction data yet",
             canvas.width / 2,
             canvas.height / 2
         );
 
-        return;
 
+        return;
     }
 
 
-    // ==========================================
+    // ------------------------------------------
     // CANVAS POSITION
-    // ==========================================
+    // ------------------------------------------
 
     const centerX =
         canvas.width / 2;
@@ -678,98 +777,103 @@ function createRiskChart(
     const centerY =
         canvas.height / 2;
 
-    const radius =
-        100;
 
-    const innerRadius =
-        55;
+    const radius = 100;
+
+    const innerRadius = 55;
 
 
     let startAngle =
         -Math.PI / 2;
 
 
-    // ==========================================
+    // ------------------------------------------
     // DRAW DOUGHNUT
-    // ==========================================
+    // ------------------------------------------
 
-    values.forEach((value, index) => {
+    values.forEach(
+        (value, index) => {
 
-        if (value === 0) {
-            return;
+            if (value === 0) {
+                return;
+            }
+
+
+            const sliceAngle =
+                (value / total) *
+                Math.PI *
+                2;
+
+
+            const endAngle =
+                startAngle +
+                sliceAngle;
+
+
+            ctx.beginPath();
+
+
+            ctx.arc(
+                centerX,
+                centerY,
+                radius,
+                startAngle,
+                endAngle
+            );
+
+
+            ctx.arc(
+                centerX,
+                centerY,
+                innerRadius,
+                endAngle,
+                startAngle,
+                true
+            );
+
+
+            ctx.closePath();
+
+
+            // ------------------------------------------
+            // COLORS
+            // ------------------------------------------
+
+            if (index === 0) {
+
+                ctx.fillStyle =
+                    "#ef4444";
+
+            }
+
+            else if (index === 1) {
+
+                ctx.fillStyle =
+                    "#f59e0b";
+
+            }
+
+            else {
+
+                ctx.fillStyle =
+                    "#22c55e";
+
+            }
+
+
+            ctx.fill();
+
+
+            startAngle =
+                endAngle;
+
         }
+    );
 
 
-        const sliceAngle =
-            (value / total) *
-            Math.PI *
-            2;
-
-
-        const endAngle =
-            startAngle +
-            sliceAngle;
-
-
-        ctx.beginPath();
-
-
-        ctx.arc(
-            centerX,
-            centerY,
-            radius,
-            startAngle,
-            endAngle
-        );
-
-
-        ctx.arc(
-            centerX,
-            centerY,
-            innerRadius,
-            endAngle,
-            startAngle,
-            true
-        );
-
-
-        ctx.closePath();
-
-
-        if (index === 0) {
-
-            ctx.fillStyle =
-                "#ef4444";
-
-        }
-
-        else if (index === 1) {
-
-            ctx.fillStyle =
-                "#f59e0b";
-
-        }
-
-        else {
-
-            ctx.fillStyle =
-                "#22c55e";
-
-        }
-
-
-        ctx.fill();
-
-
-        startAngle =
-            endAngle;
-
-    });
-
-
-    // ==========================================
+    // ------------------------------------------
     // CENTER TOTAL
-    // ==========================================
+    // ------------------------------------------
 
     ctx.fillStyle =
         "#111827";
@@ -791,14 +895,18 @@ function createRiskChart(
     );
 
 
-    // ==========================================
+    // ------------------------------------------
     // LEGEND
-    // ==========================================
+    // ------------------------------------------
 
     const labels = [
+
         "High Risk",
+
         "Medium Risk",
+
         "Low Risk"
+
     ];
 
 
@@ -806,59 +914,61 @@ function createRiskChart(
         canvas.height - 35;
 
 
-    labels.forEach((label, index) => {
+    labels.forEach(
+        (label, index) => {
 
-        const x =
-            90 + (index * 160);
+            const x =
+                90 + (index * 160);
 
 
-        if (index === 0) {
+            if (index === 0) {
+
+                ctx.fillStyle =
+                    "#ef4444";
+
+            }
+
+            else if (index === 1) {
+
+                ctx.fillStyle =
+                    "#f59e0b";
+
+            }
+
+            else {
+
+                ctx.fillStyle =
+                    "#22c55e";
+
+            }
+
+
+            ctx.fillRect(
+                x,
+                legendY - 10,
+                12,
+                12
+            );
+
 
             ctx.fillStyle =
-                "#ef4444";
+                "#374151";
+
+            ctx.font =
+                "14px Arial";
+
+            ctx.textAlign =
+                "left";
+
+
+            ctx.fillText(
+                label,
+                x + 18,
+                legendY
+            );
 
         }
-
-        else if (index === 1) {
-
-            ctx.fillStyle =
-                "#f59e0b";
-
-        }
-
-        else {
-
-            ctx.fillStyle =
-                "#22c55e";
-
-        }
-
-
-        ctx.fillRect(
-            x,
-            legendY - 10,
-            12,
-            12
-        );
-
-
-        ctx.fillStyle =
-            "#374151";
-
-        ctx.font =
-            "14px Arial";
-
-        ctx.textAlign =
-            "left";
-
-
-        ctx.fillText(
-            label,
-            x + 18,
-            legendY
-        );
-
-    });
+    );
 
 }
 
@@ -872,9 +982,9 @@ async function loadTransactions() {
     try {
 
         const response =
-    await fetch(
-        `${API_URL}/transactions?t=${Date.now()}`
-    );
+            await fetch(
+                `${API_URL}/transactions?t=${Date.now()}`
+            );
 
 
         if (!response.ok) {
@@ -935,16 +1045,15 @@ function displayTransactions(
         );
 
         return;
-
     }
 
 
     table.innerHTML = "";
 
 
-    // ==========================================
+    // ------------------------------------------
     // NO TRANSACTIONS
-    // ==========================================
+    // ------------------------------------------
 
     if (
         !transactions ||
@@ -963,90 +1072,90 @@ function displayTransactions(
         `;
 
         return;
-
     }
 
 
-    // ==========================================
-    // DISPLAY ROWS
-    // ==========================================
+    // ------------------------------------------
+    // DISPLAY TRANSACTIONS
+    // ------------------------------------------
 
-    transactions.forEach(transaction => {
+    transactions.forEach(
+        transaction => {
 
-        const row =
-            document.createElement("tr");
-
-
-        let riskClass =
-            "";
+            const row =
+                document.createElement("tr");
 
 
-        if (
-            transaction.risk === "HIGH"
-        ) {
+            let riskClass = "";
 
-            riskClass =
-                "risk-high";
+
+            if (
+                transaction.risk === "HIGH"
+            ) {
+
+                riskClass =
+                    "risk-high";
+
+            }
+
+            else if (
+                transaction.risk === "MEDIUM"
+            ) {
+
+                riskClass =
+                    "risk-medium";
+
+            }
+
+            else {
+
+                riskClass =
+                    "risk-low";
+
+            }
+
+
+            row.innerHTML = `
+
+                <td>
+                    #${transaction.id}
+                </td>
+
+                <td>
+                    ₹${Number(
+                        transaction.amount
+                    ).toLocaleString("en-IN")}
+                </td>
+
+                <td>
+
+                    <strong
+                        class="${riskClass}"
+                    >
+                        ${transaction.risk}
+                    </strong>
+
+                </td>
+
+                <td>
+                    ${transaction.fraud_probability}%
+                </td>
+
+                <td>
+
+                    <strong>
+                        ${transaction.action}
+                    </strong>
+
+                </td>
+
+            `;
+
+
+            table.appendChild(row);
 
         }
-
-        else if (
-            transaction.risk === "MEDIUM"
-        ) {
-
-            riskClass =
-                "risk-medium";
-
-        }
-
-        else {
-
-            riskClass =
-                "risk-low";
-
-        }
-
-
-        row.innerHTML = `
-
-            <td>
-                #${transaction.id}
-            </td>
-
-            <td>
-                ₹${Number(
-                    transaction.amount
-                ).toLocaleString("en-IN")}
-            </td>
-
-            <td>
-
-                <strong
-                    class="${riskClass}"
-                >
-                    ${transaction.risk}
-                </strong>
-
-            </td>
-
-            <td>
-                ${transaction.fraud_probability}%
-            </td>
-
-            <td>
-
-                <strong>
-                    ${transaction.action}
-                </strong>
-
-            </td>
-
-        `;
-
-
-        table.appendChild(row);
-
-    });
+    );
 
 }
 
@@ -1078,7 +1187,9 @@ function filterTransactions() {
         !riskFilter ||
         !actionFilter
     ) {
+
         return;
+
     }
 
 
@@ -1097,56 +1208,74 @@ function filterTransactions() {
 
 
     const filteredTransactions =
-        allTransactions.filter(transaction => {
+        allTransactions.filter(
+            transaction => {
 
-            const matchesSearch =
+                // ------------------------------------------
+                // SEARCH
+                // ------------------------------------------
 
-                String(transaction.id)
-                    .toLowerCase()
-                    .includes(search)
+                const matchesSearch =
 
-                ||
+                    String(transaction.id)
+                        .toLowerCase()
+                        .includes(search)
 
-                String(transaction.amount)
-                    .toLowerCase()
-                    .includes(search)
+                    ||
 
-                ||
+                    String(transaction.amount)
+                        .toLowerCase()
+                        .includes(search)
 
-                String(transaction.risk)
-                    .toLowerCase()
-                    .includes(search)
+                    ||
 
-                ||
+                    String(transaction.risk)
+                        .toLowerCase()
+                        .includes(search)
 
-                String(transaction.action)
-                    .toLowerCase()
-                    .includes(search);
+                    ||
 
-
-            const matchesRisk =
-
-                selectedRisk === "ALL" ||
-
-                transaction.risk ===
-                selectedRisk;
+                    String(transaction.action)
+                        .toLowerCase()
+                        .includes(search);
 
 
-            const matchesAction =
+                // ------------------------------------------
+                // RISK FILTER
+                // ------------------------------------------
 
-                selectedAction === "ALL" ||
+                const matchesRisk =
 
-                transaction.action ===
-                selectedAction;
+                    selectedRisk === "ALL"
+
+                    ||
+
+                    transaction.risk ===
+                    selectedRisk;
 
 
-            return (
-                matchesSearch &&
-                matchesRisk &&
-                matchesAction
-            );
+                // ------------------------------------------
+                // ACTION FILTER
+                // ------------------------------------------
 
-        });
+                const matchesAction =
+
+                    selectedAction === "ALL"
+
+                    ||
+
+                    transaction.action ===
+                    selectedAction;
+
+
+                return (
+                    matchesSearch &&
+                    matchesRisk &&
+                    matchesAction
+                );
+
+            }
+        );
 
 
     displayTransactions(
