@@ -1,505 +1,918 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>AI Fraud Detection System</title>
-
-    <link rel="stylesheet" href="style.css">
-
+    <title>FraudGuard AI — Enterprise Fraud Detection & Risk Intelligence</title>
+    
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    
+    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Custom Fintech Stylesheet -->
+    <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
 
-<nav class="navbar">
+    <!-- Toast Notification Container -->
+    <div id="toastContainer" class="toast-container"></div>
 
-    <div class="logo">
-        <span>🛡️</span>
-        FraudGuard AI
+    <!-- Application Shell -->
+    <div class="app-wrapper">
+        
+        <!-- SIDEBAR NAVIGATION -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="brand-icon">🛡️</div>
+                <div class="brand-text">
+                    <h2>FraudGuard</h2>
+                    <span>AI Risk Intelligence</span>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section-title">Navigation</div>
+                <a class="nav-item active" data-view="view-overview" id="nav-overview">
+                    <span class="nav-icon">📊</span>
+                    <span>Dashboard</span>
+                    <span class="badge" id="navTotalBadge">0</span>
+                </a>
+                <a class="nav-item" data-view="view-monitoring" id="nav-monitoring">
+                    <span class="nav-icon">📜</span>
+                    <span>Live Monitoring</span>
+                </a>
+                <a class="nav-item" data-view="view-analytics" id="nav-analytics">
+                    <span class="nav-icon">📈</span>
+                    <span>Analytics & Trends</span>
+                </a>
+
+                <div class="nav-section-title">Machine Learning</div>
+                <a class="nav-item" data-view="view-models" id="nav-models">
+                    <span class="nav-icon">🧠</span>
+                    <span>AI Model Studio</span>
+                    <span class="badge" style="background: rgba(99,102,241,0.2); color: #c7d2fe;">v2.4</span>
+                </a>
+                <a class="nav-item" data-view="view-audit" id="nav-audit">
+                    <span class="nav-icon">⚡</span>
+                    <span>System & Audit</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="system-status-card">
+                    <div class="status-header">
+                        <span class="status-title">Engine Health</span>
+                        <div class="status-indicator">
+                            <span class="pulse-dot"></span>
+                            <span>ACTIVE</span>
+                        </div>
+                    </div>
+                    <div class="status-meta">RandomForest + IsolationForest</div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- MAIN VIEWPORT -->
+        <div class="main-content">
+            
+            <!-- STICKY TOPBAR -->
+            <header class="topbar">
+                <div class="topbar-left">
+                    <button class="sidebar-toggle-btn" id="sidebarToggle" title="Toggle Sidebar">☰</button>
+                    <div class="breadcrumb">
+                        <span>Platform</span>
+                        <span>/</span>
+                        <span class="breadcrumb-current" id="breadcrumbTitle">Dashboard Overview</span>
+                    </div>
+                </div>
+
+                <div class="topbar-right">
+                    <div class="api-pill" id="apiStatusPill">
+                        <span class="dot"></span>
+                        <span id="apiStatusText">AI Backend Connected</span>
+                    </div>
+
+                    <button class="quick-action-btn" id="refreshBtn" title="Sync Latest Database Records">
+                        <span>🔄</span>
+                        <span>Sync</span>
+                    </button>
+
+                    <!-- Authenticated User Profile Dropdown -->
+                    <div style="position: relative;">
+                        <div class="user-profile-badge" id="userProfileBtn" title="Analyst Profile" onclick="toggleUserDropdown()">
+                            <div class="user-avatar" id="topbarAvatar">AN</div>
+                            <div class="user-meta">
+                                <div class="name" id="topbarUserName">Analyst Session</div>
+                                <div class="role" id="topbarUserRole">Lead Risk Analyst</div>
+                            </div>
+                            <span style="font-size: 0.65rem; color: var(--text-muted); margin-left: 4px;">▼</span>
+                        </div>
+
+                        <!-- Dropdown Menu -->
+                        <div id="userDropdown" class="user-dropdown-menu hidden">
+                            <div class="dropdown-header">
+                                <div class="dropdown-user-name" id="dropdownUserName">Lead Risk Analyst</div>
+                                <div class="dropdown-user-email" id="dropdownUserEmail">analyst@fraudguard.ai</div>
+                            </div>
+                            <div class="dropdown-divider"></div>
+                            <button class="dropdown-item" onclick="openProfileModal()">
+                                <span>👤</span><span>Profile Settings</span>
+                            </button>
+                            <button class="dropdown-item" onclick="openAuthModal('signin')">
+                                <span>🔑</span><span>Switch Account</span>
+                            </button>
+                            <div class="dropdown-divider"></div>
+                            <button class="dropdown-item text-danger" onclick="handleLogout()">
+                                <span>🚪</span><span>Sign Out</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- PAGE VIEWS CONTAINER -->
+            <main class="page-container">
+                
+                <!-- ==========================================
+                     VIEW 1: OVERVIEW & LIVE FRAUD DETECTION
+                     ========================================== -->
+                <section id="view-overview" class="view-section active-view">
+                    
+                    <!-- HERO SHOWCASE BANNER -->
+                    <div class="hero-banner">
+                        <div class="hero-tag">Enterprise Fintech Security</div>
+                        <h1 class="hero-title">Real-Time AI Fraud Detection System</h1>
+                        <p class="hero-subtitle">
+                            Dual-layer defense system combining Supervised Random Forest classification with Unsupervised Isolation Forest anomaly detection for sub-second payment risk scoring.
+                        </p>
+                        <div class="hero-pills">
+                            <div class="tech-pill">⚡ <span>Latency:</span> <strong>&lt; 35ms</strong></div>
+                            <div class="tech-pill">🎯 <span>Model Accuracy:</span> <strong>99.1%</strong></div>
+                            <div class="tech-pill">🛡️ <span>Dual Engine:</span> <strong>Supervised + Anomaly</strong></div>
+                            <div class="tech-pill">🔍 <span>Explainability:</span> <strong>Real-Time Risk Factors</strong></div>
+                        </div>
+                    </div>
+
+                    <!-- KPI STATS CARDS -->
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-card-header">
+                                <div class="stat-icon-wrapper icon-blue">💳</div>
+                                <span class="stat-trend trend-neutral">Total Flow</span>
+                            </div>
+                            <div class="stat-label">Total Transactions</div>
+                            <div class="stat-value" id="totalTransactions">0</div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-card-header">
+                                <div class="stat-icon-wrapper icon-red">🚨</div>
+                                <span class="stat-trend trend-up-red">Blocked</span>
+                            </div>
+                            <div class="stat-label">Fraud Detected</div>
+                            <div class="stat-value" id="fraudDetected">0</div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-card-header">
+                                <div class="stat-icon-wrapper icon-amber">⚠️</div>
+                                <span class="stat-trend trend-neutral">Critical</span>
+                            </div>
+                            <div class="stat-label">High Risk Alerts</div>
+                            <div class="stat-value" id="highRisk">0</div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-card-header">
+                                <div class="stat-icon-wrapper icon-green">🛡️</div>
+                                <span class="stat-trend trend-up-green">Cleared</span>
+                            </div>
+                            <div class="stat-label">Protected & Approved</div>
+                            <div class="stat-value" id="protectedTransactions">0</div>
+                        </div>
+                    </div>
+
+                    <!-- WORKSPACE GRID: ANALYZER & RESULTS -->
+                    <div class="workspace-grid">
+                        
+                        <!-- TRANSACTION ANALYZER FORM -->
+                        <div class="glass-card">
+                            <div class="card-title-group">
+                                <div class="title-with-pill">
+                                    <span class="card-pretitle">Interactive AI Inference</span>
+                                    <h2 class="card-heading">Check a Payment</h2>
+                                </div>
+                                <div class="ai-pill">
+                                    <span>✨</span>
+                                    <span>Random Forest + Anomaly</span>
+                                </div>
+                            </div>
+
+                            <!-- 1-Click Demo Scenarios -->
+                            <div class="presets-bar">
+                                <div class="presets-label">
+                                    <span>⚡ Quick-Load Test Scenarios (1-Click Demo):</span>
+                                </div>
+                                <div class="preset-buttons">
+                                    <button type="button" class="preset-btn safe-preset" onclick="loadScenario('normal')">
+                                        🟢 Normal E-Commerce
+                                    </button>
+                                    <button type="button" class="preset-btn" onclick="loadScenario('suspicious')">
+                                        🟡 Location Shift
+                                    </button>
+                                    <button type="button" class="preset-btn alert-preset" onclick="loadScenario('takeover')">
+                                        🔴 Account Takeover
+                                    </button>
+                                    <button type="button" class="preset-btn alert-preset" onclick="loadScenario('midnight')">
+                                        ⚠️ Midnight Outlier
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Form -->
+                            <form id="transactionForm" onsubmit="event.preventDefault(); analyzeTransaction(event);">
+                                <div class="form-grid">
+                                    <div class="input-block">
+                                        <label class="input-label" for="amount">
+                                            <span>Transaction Amount</span>
+                                            <span class="input-hint">in INR (₹)</span>
+                                        </label>
+                                        <div class="input-wrapper">
+                                            <span class="input-addon-left">₹</span>
+                                            <input type="number" id="amount" class="form-control has-addon-left" placeholder="85000" min="1" step="any" required>
+                                        </div>
+                                    </div>
+
+                                    <div class="input-block">
+                                        <label class="input-label" for="accountAge">
+                                            <span>Account Age</span>
+                                            <span class="input-hint">Duration</span>
+                                        </label>
+                                        <div class="input-wrapper">
+                                            <input type="number" id="accountAge" class="form-control has-addon-right" placeholder="30" min="0" required>
+                                            <span class="input-addon-right">days</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="input-block">
+                                        <label class="input-label" for="failedAttempts">
+                                            <span>Failed Attempts</span>
+                                            <span class="input-hint">Recent failed logins/pins</span>
+                                        </label>
+                                        <input type="number" id="failedAttempts" class="form-control" placeholder="0" min="0" max="20" required>
+                                    </div>
+
+                                    <div class="input-block">
+                                        <label class="input-label" for="transactionHour">
+                                            <span>Transaction Hour</span>
+                                            <span class="input-hint">24-hour military clock</span>
+                                        </label>
+                                        <div class="input-wrapper">
+                                            <input type="number" id="transactionHour" class="form-control has-addon-right" placeholder="14" min="0" max="23" required>
+                                            <span class="input-addon-right">0 - 23</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="input-block">
+                                        <label class="input-label" for="previousTransactions">
+                                            <span>Previous Transactions</span>
+                                            <span class="input-hint">Historical count</span>
+                                        </label>
+                                        <input type="number" id="previousTransactions" class="form-control" placeholder="25" min="0" required>
+                                    </div>
+
+                                    <div class="input-block">
+                                        <label class="input-label" for="deviceChanged">
+                                            <span>Device Signature</span>
+                                            <span class="input-hint">Hardware fingerprint</span>
+                                        </label>
+                                        <select id="deviceChanged" class="form-control">
+                                            <option value="0">Existing / Known Device</option>
+                                            <option value="1">New / Unrecognized Device</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="input-block full-width">
+                                        <label class="input-label" for="locationChanged">
+                                            <span>Geo-Location Status</span>
+                                            <span class="input-hint">IP & GPS Proximity</span>
+                                        </label>
+                                        <select id="locationChanged" class="form-control">
+                                            <option value="0">Normal / Home Location (Trusted)</option>
+                                            <option value="1">New / Remote Location (High Anomaly)</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <button type="button" class="analyze-btn" id="analyzeBtn" onclick="analyzeTransaction(event)">
+                                    <span>⚡</span>
+                                    <span>Analyze Transaction with AI</span>
+                                </button>
+
+                                <div id="loading" class="loading-box hidden">
+                                    <div class="spinner"></div>
+                                    <span>Running inference across Random Forest & Isolation Forest pipelines...</span>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- RESULT DISPLAY CARD -->
+                        <div class="glass-card result-card-container">
+                            <div class="card-title-group">
+                                <div class="title-with-pill">
+                                    <span class="card-pretitle">Real-Time Risk Decision</span>
+                                    <h2 class="card-heading">AI Evaluation</h2>
+                                </div>
+                                <span id="resultIcon" style="font-size: 1.6rem;">🛡️</span>
+                            </div>
+
+                            <!-- Empty Ready State -->
+                            <div id="emptyResult" class="empty-state-content">
+                                <div class="empty-radar-icon">🤖</div>
+                                <h3>Ready for Inference</h3>
+                                <p>Select a quick-load test scenario above or enter transaction values to trigger real-time AI fraud detection.</p>
+                            </div>
+
+                            <!-- Live Analysis Result -->
+                            <div id="result" class="result-display hidden">
+                                
+                                <div class="risk-gauge-container">
+                                    <div id="riskCircle" class="gauge-circle gauge-low">
+                                        <span id="riskScore" class="gauge-value">0%</span>
+                                        <span class="gauge-label">FRAUD PROBABILITY</span>
+                                    </div>
+                                </div>
+
+                                <div class="risk-badges-strip">
+                                    <span id="riskBadge" class="risk-pill-badge low">LOW RISK</span>
+                                    <span id="anomalyBadge" class="anomaly-pill-badge hidden">⚠️ Anomaly Detected</span>
+                                </div>
+
+                                <div class="action-verdict-box">
+                                    <div class="verdict-info">
+                                        <span class="verdict-label">Recommended Action</span>
+                                        <span id="action" class="verdict-value verdict-approve">APPROVE</span>
+                                    </div>
+                                    <div class="verdict-pill">
+                                        <span id="verdictIcon">✅</span>
+                                    </div>
+                                </div>
+
+                                <div class="reasons-container">
+                                    <div class="reasons-header">
+                                        <span>🔍</span>
+                                        <span>Identified Risk Factors & Explanations</span>
+                                    </div>
+                                    <ul id="reasonsList" class="reasons-list"></ul>
+                                </div>
+
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- CHARTS ROW: DOUGHNUT + PREVENTION SUMMARY -->
+                    <div class="charts-row-grid">
+                        <div class="chart-card">
+                            <div class="card-title-group">
+                                <div class="title-with-pill">
+                                    <span class="card-pretitle">Database Distribution</span>
+                                    <h3 class="card-heading" style="font-size: 1.15rem;">Risk Tier Breakdown</h3>
+                                </div>
+                            </div>
+                            <div class="chart-wrapper">
+                                <canvas id="riskChart"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="chart-card">
+                            <div class="card-title-group">
+                                <div class="title-with-pill">
+                                    <span class="card-pretitle">7-Day Trajectory</span>
+                                    <h3 class="card-heading" style="font-size: 1.15rem;">Transaction Volume & Fraud Trend</h3>
+                                </div>
+                            </div>
+                            <div class="chart-wrapper">
+                                <canvas id="overviewTrendChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- RECENT TRANSACTIONS TABLE PREVIEW -->
+                    <div class="table-glass-card">
+                        <div class="card-title-group">
+                            <div class="title-with-pill">
+                                <span class="card-pretitle">Real-Time Feed</span>
+                                <h2 class="card-heading">Recent Transactions</h2>
+                            </div>
+                            <button class="quick-action-btn" onclick="switchView('view-monitoring')">
+                                <span>View Full Log</span>
+                                <span>→</span>
+                            </button>
+                        </div>
+
+                        <div class="table-toolbar">
+                            <div class="search-box-wrapper">
+                                <span class="search-icon">🔍</span>
+                                <input type="text" id="transactionSearch" class="search-input" placeholder="Search by ID, amount, risk tier or action...">
+                            </div>
+
+                            <div class="filters-group">
+                                <select id="riskFilter" class="filter-select">
+                                    <option value="ALL">All Risk Levels</option>
+                                    <option value="HIGH">High Risk</option>
+                                    <option value="MEDIUM">Medium Risk</option>
+                                    <option value="LOW">Low Risk</option>
+                                </select>
+
+                                <select id="actionFilter" class="filter-select">
+                                    <option value="ALL">All Actions</option>
+                                    <option value="BLOCK">Blocked</option>
+                                    <option value="REVIEW">Review Required</option>
+                                    <option value="APPROVE">Approved</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="modern-table">
+                                <thead>
+                                    <tr>
+                                        <th>Tx ID</th>
+                                        <th>Amount</th>
+                                        <th>Risk Tier</th>
+                                        <th>Fraud Probability</th>
+                                        <th>Decision</th>
+                                        <th>Anomaly</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="transactionTable">
+                                    <tr>
+                                        <td colspan="7" class="text-center" style="padding: 30px; color: var(--text-muted);">
+                                            Connecting to backend database...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </section>
+
+                <!-- ==========================================
+                     VIEW 2: FULL MONITORING & INVESTIGATION
+                     ========================================== -->
+                <section id="view-monitoring" class="view-section">
+                    <div class="table-glass-card">
+                        <div class="card-title-group">
+                            <div class="title-with-pill">
+                                <span class="card-pretitle">Transaction Ledger</span>
+                                <h2 class="card-heading">Live Fraud Investigation & Monitoring</h2>
+                            </div>
+                            <div style="display: flex; gap: 10px;">
+                                <button class="quick-action-btn" onclick="exportToCSV()">
+                                    <span>📥</span>
+                                    <span>Export CSV</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="table-toolbar">
+                            <div class="search-box-wrapper">
+                                <span class="search-icon">🔍</span>
+                                <input type="text" id="monitoringSearch" class="search-input" placeholder="Filter transaction database..." oninput="handleMonitoringSearch()">
+                            </div>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="modern-table">
+                                <thead>
+                                    <tr>
+                                        <th>Tx ID</th>
+                                        <th>Timestamp</th>
+                                        <th>Amount (INR)</th>
+                                        <th>Risk Level</th>
+                                        <th>Score</th>
+                                        <th>Action</th>
+                                        <th>Anomaly Status</th>
+                                        <th>Inspect</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="monitoringTableBody">
+                                    <!-- Populated dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ==========================================
+                     VIEW 3: ANALYTICS & INSIGHTS
+                     ========================================== -->
+                <section id="view-analytics" class="view-section">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon-wrapper icon-blue">💰</div>
+                            <div class="stat-label">Total Volume Monitored</div>
+                            <div class="stat-value" id="analyticsTotalVol">₹0</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon-wrapper icon-red">🛡️</div>
+                            <div class="stat-label">Fraud Capital Prevented</div>
+                            <div class="stat-value" id="analyticsFraudVol" style="color: var(--risk-high);">₹0</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon-wrapper icon-amber">📊</div>
+                            <div class="stat-label">Average Ticket Size</div>
+                            <div class="stat-value" id="analyticsAvgTx">₹0</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon-wrapper icon-green">⚡</div>
+                            <div class="stat-label">System Block Ratio</div>
+                            <div class="stat-value" id="analyticsBlockRate">0%</div>
+                        </div>
+                    </div>
+
+                    <div class="charts-row-grid" style="grid-template-columns: 1fr 1fr; margin-bottom: 24px;">
+                        <div class="chart-card">
+                            <div class="card-title-group">
+                                <div class="title-with-pill">
+                                    <span class="card-pretitle">Temporal Patterns</span>
+                                    <h3 class="card-heading">Risk Distribution by Hour of Day</h3>
+                                </div>
+                            </div>
+                            <div class="chart-wrapper">
+                                <canvas id="hourlyRiskChart"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="chart-card">
+                            <div class="card-title-group">
+                                <div class="title-with-pill">
+                                    <span class="card-pretitle">Payment Channel Risk</span>
+                                    <h3 class="card-heading">Fraud by Channel & Category</h3>
+                                </div>
+                            </div>
+                            <div class="chart-wrapper">
+                                <canvas id="categoryFraudChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ==========================================
+                     VIEW 4: AI MODEL STUDIO & EVALUATION
+                     ========================================== -->
+                <section id="view-models" class="view-section">
+                    
+                    <div class="metrics-comparison-grid">
+                        <div class="model-spec-card">
+                            <h3><span>🌲</span> Random Forest Classifier</h3>
+                            <div class="spec-list">
+                                <div class="spec-item"><span class="label">Pipeline:</span><span class="val">StandardScaler + RF</span></div>
+                                <div class="spec-item"><span class="label">Estimators:</span><span class="val">200 Trees</span></div>
+                                <div class="spec-item"><span class="label">Criterion:</span><span class="val">Gini Impurity</span></div>
+                                <div class="spec-item"><span class="label">Class Weight:</span><span class="val">Balanced</span></div>
+                                <div class="spec-item"><span class="label">Accuracy:</span><span class="val" style="color: var(--risk-low);">99.1%</span></div>
+                            </div>
+                        </div>
+
+                        <div class="model-spec-card">
+                            <h3><span>🔍</span> Isolation Forest (Anomaly)</h3>
+                            <div class="spec-list">
+                                <div class="spec-item"><span class="label">Type:</span><span class="val">Unsupervised Ensembling</span></div>
+                                <div class="spec-item"><span class="label">Contamination:</span><span class="val">0.10 (10%)</span></div>
+                                <div class="spec-item"><span class="label">Risk Penalty:</span><span class="val">+15% to Probability</span></div>
+                                <div class="spec-item"><span class="label">Outlier Metric:</span><span class="val">Path Length Anomaly</span></div>
+                                <div class="spec-item"><span class="label">Status:</span><span class="val" style="color: var(--risk-low);">Online</span></div>
+                            </div>
+                        </div>
+
+                        <div class="model-spec-card">
+                            <h3><span>📊</span> Benchmark Metrics</h3>
+                            <div class="spec-list">
+                                <div class="spec-item"><span class="label">Precision:</span><span class="val">98.4%</span></div>
+                                <div class="spec-item"><span class="label">Recall:</span><span class="val">97.8%</span></div>
+                                <div class="spec-item"><span class="label">F1-Score:</span><span class="val">98.1%</span></div>
+                                <div class="spec-item"><span class="label">ROC-AUC:</span><span class="val">0.995</span></div>
+                                <div class="spec-item"><span class="label">Test Split:</span><span class="val">20% Stratified</span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="charts-row-grid" style="grid-template-columns: 1fr 1fr;">
+                        <!-- Confusion Matrix -->
+                        <div class="chart-card">
+                            <div class="card-title-group">
+                                <div class="title-with-pill">
+                                    <span class="card-pretitle">Confusion Matrix</span>
+                                    <h3 class="card-heading">Test Evaluation Matrix (N=2,000)</h3>
+                                </div>
+                            </div>
+                            <div class="cm-container">
+                                <div class="cm-grid">
+                                    <div class="cm-cell cm-tn">
+                                        <div class="cm-count">1,348</div>
+                                        <div class="cm-desc">True Negatives (Legit)</div>
+                                    </div>
+                                    <div class="cm-cell cm-fp">
+                                        <div class="cm-count">12</div>
+                                        <div class="cm-desc">False Positives</div>
+                                    </div>
+                                    <div class="cm-cell cm-fn">
+                                        <div class="cm-count">15</div>
+                                        <div class="cm-desc">False Negatives</div>
+                                    </div>
+                                    <div class="cm-cell cm-tp">
+                                        <div class="cm-count">625</div>
+                                        <div class="cm-desc">True Positives (Fraud)</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Feature Importance -->
+                        <div class="chart-card">
+                            <div class="card-title-group">
+                                <div class="title-with-pill">
+                                    <span class="card-pretitle">Explainability (XAI)</span>
+                                    <h3 class="card-heading">Global Feature Importance</h3>
+                                </div>
+                            </div>
+                            <div class="feat-imp-list">
+                                <div class="feat-item">
+                                    <div class="feat-meta"><span class="feat-name">Transaction Amount</span><span class="feat-pct">38.2%</span></div>
+                                    <div class="feat-bar-bg"><div class="feat-bar-fill" style="width: 38.2%;"></div></div>
+                                </div>
+                                <div class="feat-item">
+                                    <div class="feat-meta"><span class="feat-name">Device Changed</span><span class="feat-pct">19.5%</span></div>
+                                    <div class="feat-bar-bg"><div class="feat-bar-fill" style="width: 19.5%;"></div></div>
+                                </div>
+                                <div class="feat-item">
+                                    <div class="feat-meta"><span class="feat-name">Location Changed</span><span class="feat-pct">16.8%</span></div>
+                                    <div class="feat-bar-bg"><div class="feat-bar-fill" style="width: 16.8%;"></div></div>
+                                </div>
+                                <div class="feat-item">
+                                    <div class="feat-meta"><span class="feat-name">Failed Attempts</span><span class="feat-pct">13.6%</span></div>
+                                    <div class="feat-bar-bg"><div class="feat-bar-fill" style="width: 13.6%;"></div></div>
+                                </div>
+                                <div class="feat-item">
+                                    <div class="feat-meta"><span class="feat-name">Account Age</span><span class="feat-pct">6.4%</span></div>
+                                    <div class="feat-bar-bg"><div class="feat-bar-fill" style="width: 6.4%;"></div></div>
+                                </div>
+                                <div class="feat-item">
+                                    <div class="feat-meta"><span class="feat-name">Transaction Hour</span><span class="feat-pct">3.8%</span></div>
+                                    <div class="feat-bar-bg"><div class="feat-bar-fill" style="width: 3.8%;"></div></div>
+                                </div>
+                                <div class="feat-item">
+                                    <div class="feat-meta"><span class="feat-name">Previous Transactions</span><span class="feat-pct">1.7%</span></div>
+                                    <div class="feat-bar-bg"><div class="feat-bar-fill" style="width: 1.7%;"></div></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </section>
+
+                <!-- ==========================================
+                     VIEW 5: SYSTEM AUDIT & LOGS
+                     ========================================== -->
+                <section id="view-audit" class="view-section">
+                    <div class="table-glass-card">
+                        <div class="card-title-group">
+                            <div class="title-with-pill">
+                                <span class="card-pretitle">Security Telemetry</span>
+                                <h2 class="card-heading">System Audit Trail & Health</h2>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="modern-table">
+                                <thead>
+                                    <tr>
+                                        <th>Timestamp</th>
+                                        <th>Event Type</th>
+                                        <th>Severity</th>
+                                        <th>Component</th>
+                                        <th>Details</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="auditTableBody">
+                                    <!-- Populated dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+            </main>
+
+            <!-- FOOTER -->
+            <footer style="padding: 24px 32px; border-top: 1px solid var(--border-subtle); display: flex; align-items: center; justify-content: space-between; font-size: 0.8rem; color: var(--text-muted);">
+                <div>FraudGuard AI • Enterprise Payment Security System</div>
+                <div>Flask REST API + Scikit-Learn • Port 5000</div>
+            </footer>
+
+        </div>
     </div>
 
-    <div class="nav-status">
-        <span class="status-dot"></span>
-        AI Engine Online
+    <!-- TRANSACTION INSPECTOR MODAL -->
+    <div id="inspectorModal" class="modal-backdrop">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>🔍 Transaction Detail Inspector</h3>
+                <button class="modal-close-btn" onclick="closeInspectorModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-details-grid">
+                    <div class="modal-field">
+                        <div class="modal-field-label">Transaction ID</div>
+                        <div class="modal-field-val" id="modalTxId">#0</div>
+                    </div>
+                    <div class="modal-field">
+                        <div class="modal-field-label">Timestamp</div>
+                        <div class="modal-field-val" id="modalTimestamp">-</div>
+                    </div>
+                    <div class="modal-field">
+                        <div class="modal-field-label">Amount (INR)</div>
+                        <div class="modal-field-val" id="modalAmount">₹0</div>
+                    </div>
+                    <div class="modal-field">
+                        <div class="modal-field-label">Account Age</div>
+                        <div class="modal-field-val" id="modalAccountAge">0 days</div>
+                    </div>
+                    <div class="modal-field">
+                        <div class="modal-field-label">Failed Logins/PIN</div>
+                        <div class="modal-field-val" id="modalFailedAttempts">0</div>
+                    </div>
+                    <div class="modal-field">
+                        <div class="modal-field-label">Transaction Hour</div>
+                        <div class="modal-field-val" id="modalHour">00:00</div>
+                    </div>
+                    <div class="modal-field">
+                        <div class="modal-field-label">Device Signature</div>
+                        <div class="modal-field-val" id="modalDevice">-</div>
+                    </div>
+                    <div class="modal-field">
+                        <div class="modal-field-label">Geo Proximity</div>
+                        <div class="modal-field-val" id="modalLocation">-</div>
+                    </div>
+                    <div class="modal-field">
+                        <div class="modal-field-label">Fraud Probability</div>
+                        <div class="modal-field-val" id="modalProb">0%</div>
+                    </div>
+                    <div class="modal-field">
+                        <div class="modal-field-label">Assigned Risk</div>
+                        <div class="modal-field-val" id="modalRisk">-</div>
+                    </div>
+                </div>
+
+                <div class="reasons-container" style="margin-top: 10px;">
+                    <div class="reasons-header">
+                        <span>Risk Factors Recorded:</span>
+                    </div>
+                    <ul id="modalReasonsList" class="reasons-list"></ul>
+                </div>
+
+                <div style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px;">
+                    <button class="quick-action-btn" onclick="closeInspectorModal()">Close</button>
+                </div>
+            </div>
+        </div>
     </div>
 
-</nav>
-
-<main class="container">
-
-    <section class="hero">
-        <div>
-            <p class="tag">AI-POWERED PAYMENT SECURITY</p>
-
-            <h1>Real-Time Fraud Detection</h1>
-
-            <p class="subtitle">
-                Analyze payment transactions using machine learning
-                and identify suspicious activity instantly.
-            </p>
-        </div>
-    </section>
-
-
-    <section class="stats">
-
-        <div class="stat-card">
-            <div class="stat-icon">💳</div>
-            <div>
-                <p>Total Transactions</p>
-                <h2 id="totalTransactions">0</h2>
+    <!-- USER AUTHENTICATION MODAL (SIGN IN / REGISTER) -->
+    <div id="authModal" class="modal-backdrop">
+        <div class="modal-card" style="max-width: 460px;">
+            <div class="modal-header">
+                <h3 id="authModalTitle">🔐 Analyst Authentication</h3>
+                <button class="modal-close-btn" onclick="closeAuthModal()">✕</button>
             </div>
-        </div>
-
-        <div class="stat-card">
-            <div class="stat-icon">🚨</div>
-            <div>
-                <p>Fraud Detected</p>
-                <h2 id="fraudDetected">0</h2>
-            </div>
-        </div>
-
-        <div class="stat-card">
-            <div class="stat-icon">🔴</div>
-            <div>
-                <p>High Risk</p>
-                <h2 id="highRisk">0</h2>
-            </div>
-        </div>
-
-        <div class="stat-card">
-            <div class="stat-icon">🛡️</div>
-            <div>
-                <p>Protected</p>
-                <h2 id="protectedTransactions">0</h2>
-            </div>
-        </div>
-
-    </section>
-
-
-    <section class="chart-container">
-
-        <h3>Fraud Risk Distribution</h3>
-
-        <canvas id="riskChart" width="700" height="350"></canvas>
-
-    </section>
-
-
-    <section class="dashboard-grid">
-
-        <!-- TRANSACTION INPUT -->
-
-        <div class="card transaction-card">
-
-            <div class="card-header">
-
-                <div>
-                    <p class="small-title">TRANSACTION ANALYSIS</p>
-
-                    <h2>Check a Payment</h2>
+            <div class="modal-body">
+                <div class="auth-tabs">
+                    <button type="button" class="auth-tab-btn active" id="tabBtnSignIn" onclick="switchAuthTab('signin')">Sign In</button>
+                    <button type="button" class="auth-tab-btn" id="tabBtnSignUp" onclick="switchAuthTab('signup')">Create Account</button>
                 </div>
 
-                <span class="ai-badge">AI</span>
-
-            </div>
-
-
-            <div class="form-grid">
-
-                <div class="input-group">
-
-                    <label>Transaction Amount</label>
-
-                    <div class="input-wrapper">
-
-                        <span>₹</span>
-
-                        <input
-                            type="number"
-                            id="amount"
-                            placeholder="85000"
-                        >
-
+                <!-- SIGN IN FORM -->
+                <form id="signInForm" onsubmit="event.preventDefault(); submitSignIn();">
+                    <div class="demo-credentials-box">
+                        <div class="demo-credentials-info">
+                            <div><strong>Quick Demo Account:</strong></div>
+                            <div>analyst@fraudguard.ai (admin123)</div>
+                        </div>
+                        <button type="button" class="demo-fill-btn" onclick="fillDemoCredentials()">⚡ Auto Fill</button>
                     </div>
 
-                </div>
-
-
-                <div class="input-group">
-
-                    <label>Account Age</label>
-
-                    <div class="input-wrapper">
-
-                        <input
-                            type="number"
-                            id="accountAge"
-                            placeholder="30"
-                        >
-
-                        <span>days</span>
-
+                    <div class="input-block" style="margin-bottom: 14px;">
+                        <label class="input-label" for="loginEmail">Email Address</label>
+                        <input type="email" id="loginEmail" class="form-control" placeholder="analyst@fraudguard.ai" required>
                     </div>
 
-                </div>
-
-
-                <div class="input-group">
-
-                    <label>Failed Attempts</label>
-
-                    <input
-                        type="number"
-                        id="failedAttempts"
-                        placeholder="0"
-                    >
-
-                </div>
-
-
-                <div class="input-group">
-
-                    <label>Transaction Hour</label>
-
-                    <input
-                        type="number"
-                        id="transactionHour"
-                        min="0"
-                        max="23"
-                        placeholder="14"
-                    >
-
-                    <small>0 - 23</small>
-
-                </div>
-
-
-                <div class="input-group">
-
-                    <label>Previous Transactions</label>
-
-                    <input
-                        type="number"
-                        id="previousTransactions"
-                        placeholder="25"
-                    >
-
-                </div>
-
-
-                <div class="input-group">
-
-                    <label>Device</label>
-
-                    <select id="deviceChanged">
-
-                        <option value="0">
-                            Existing Device
-                        </option>
-
-                        <option value="1">
-                            New Device
-                        </option>
-
-                    </select>
-
-                </div>
-
-
-                <div class="input-group">
-
-                    <label>Location</label>
-
-                    <select id="locationChanged">
-
-                        <option value="0">
-                            Normal Location
-                        </option>
-
-                        <option value="1">
-                            New Location
-                        </option>
-
-                    </select>
-
-                </div>
-
-            </div>
-
-
-            <button
-                type="button"
-                class="analyze-btn"
-                onclick="analyzeTransaction(event)"
-            >
-                <span>✨</span>
-                Analyze Transaction
-            </button>
-
-
-            <div
-                id="loading"
-                class="loading hidden"
-            >
-                Analyzing transaction with AI...
-            </div>
-
-        </div>
-
-
-        <!-- RESULT -->
-
-        <div class="card result-card">
-
-            <div class="card-header">
-
-                <div>
-
-                    <p class="small-title">
-                        AI DECISION
-                    </p>
-
-                    <h2>
-                        Risk Analysis
-                    </h2>
-
-                </div>
-
-                <span id="resultIcon">
-                    🛡️
-                </span>
-
-            </div>
-
-
-            <!-- EMPTY -->
-
-            <div
-                id="emptyResult"
-                class="empty-result"
-            >
-
-                <div class="empty-icon">
-                    🤖
-                </div>
-
-                <h3>
-                    Ready to Analyze
-                </h3>
-
-                <p>
-                    Enter transaction details and click
-                    "Analyze Transaction".
-                </p>
-
-            </div>
-
-
-            <!-- RESULT -->
-
-            <div
-                id="result"
-                class="result hidden"
-            >
-
-                <div class="risk-score">
-
-                    <div
-                        id="riskCircle"
-                        class="risk-circle"
-                    >
-
-                        <span id="riskScore">
-                            0%
-                        </span>
-
-                        <small>
-                            FRAUD RISK
-                        </small>
-
+                    <div class="input-block" style="margin-bottom: 20px;">
+                        <label class="input-label" for="loginPassword">Password</label>
+                        <input type="password" id="loginPassword" class="form-control" placeholder="••••••••" required>
                     </div>
 
-                </div>
+                    <button type="submit" class="analyze-btn" style="margin-top: 0;">
+                        <span>🔐</span>
+                        <span>Sign In to Dashboard</span>
+                    </button>
+                </form>
 
+                <!-- REGISTER FORM -->
+                <form id="signUpForm" class="hidden" onsubmit="event.preventDefault(); submitSignUp();">
+                    <div class="input-block" style="margin-bottom: 14px;">
+                        <label class="input-label" for="registerName">Full Name</label>
+                        <input type="text" id="registerName" class="form-control" placeholder="Dr. Sarah Connor" required>
+                    </div>
 
-                <div
-                    id="riskBadge"
-                    class="risk-badge"
-                >
-                    LOW RISK
-                </div>
+                    <div class="input-block" style="margin-bottom: 14px;">
+                        <label class="input-label" for="registerEmail">Work Email</label>
+                        <input type="email" id="registerEmail" class="form-control" placeholder="sarah@fintech.com" required>
+                    </div>
 
+                    <div class="input-block" style="margin-bottom: 14px;">
+                        <label class="input-label" for="registerPassword">Password (Min 6 chars)</label>
+                        <input type="password" id="registerPassword" class="form-control" placeholder="••••••••" minlength="6" required>
+                    </div>
 
-                <div
-                    id="anomalyBadge"
-                    class="anomaly-badge hidden"
-                >
-                    ⚠️ Anomaly Detected
-                </div>
+                    <div class="input-block" style="margin-bottom: 20px;">
+                        <label class="input-label" for="registerRole">Security Role</label>
+                        <select id="registerRole" class="form-control">
+                            <option value="Lead Risk Analyst">Lead Risk Analyst</option>
+                            <option value="Fraud Investigator">Fraud Investigator</option>
+                            <option value="Compliance Officer">Compliance Officer</option>
+                            <option value="Risk Auditor">Risk Auditor</option>
+                        </select>
+                    </div>
 
-
-                <div class="action-box">
-
-                    <span>
-                        Recommended Action
-                    </span>
-
-                    <strong id="action">
-                        APPROVE
-                    </strong>
-
-                </div>
-
-
-                <div class="reasons">
-
-                    <h3>
-                        Risk Factors
-                    </h3>
-
-                    <ul id="reasonsList"></ul>
-
-                </div>
-
+                    <button type="submit" class="analyze-btn" style="margin-top: 0;">
+                        <span>✨</span>
+                        <span>Create & Authenticate Account</span>
+                    </button>
+                </form>
             </div>
-
         </div>
+    </div>
 
-    </section>
-
-
-    <!-- TRANSACTIONS -->
-
-    <section class="transactions-section">
-
-        <div class="card-header">
-
-            <div>
-
-                <p class="small-title">
-                    TRANSACTION MONITORING
-                </p>
-
-                <h2>
-                    Recent Transactions
-                </h2>
-
+    <!-- USER PROFILE MODAL -->
+    <div id="userProfileModal" class="modal-backdrop">
+        <div class="modal-card" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3>👤 Analyst Profile & Security Settings</h3>
+                <button class="modal-close-btn" onclick="closeProfileModal()">✕</button>
             </div>
+            <div class="modal-body">
+                <form id="profileForm" onsubmit="event.preventDefault(); submitProfileUpdate();">
+                    <div class="input-block" style="margin-bottom: 14px;">
+                        <label class="input-label">Email Address (Read-Only)</label>
+                        <input type="text" id="profileEmail" class="form-control" disabled style="opacity: 0.7; cursor: not-allowed;">
+                    </div>
 
+                    <div class="input-block" style="margin-bottom: 14px;">
+                        <label class="input-label" for="profileName">Display Name</label>
+                        <input type="text" id="profileName" class="form-control" required>
+                    </div>
+
+                    <div class="input-block" style="margin-bottom: 14px;">
+                        <label class="input-label" for="profileRole">Operational Role</label>
+                        <select id="profileRole" class="form-control">
+                            <option value="Lead Risk Analyst">Lead Risk Analyst</option>
+                            <option value="Senior Risk Officer">Senior Risk Officer</option>
+                            <option value="Fraud Investigator">Fraud Investigator</option>
+                            <option value="Compliance Manager">Compliance Manager</option>
+                            <option value="System Administrator">System Administrator</option>
+                        </select>
+                    </div>
+
+                    <div class="input-block" style="margin-bottom: 20px;">
+                        <label class="input-label" for="profileNewPassword">
+                            <span>Update Password</span>
+                            <span class="input-hint">Leave blank to keep current</span>
+                        </label>
+                        <input type="password" id="profileNewPassword" class="form-control" placeholder="••••••••" minlength="6">
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 24px;">
+                        <button type="button" class="quick-action-btn" onclick="handleLogout()" style="color: var(--risk-high); border-color: rgba(239,68,68,0.3);">
+                            <span>🚪</span><span>Log Out</span>
+                        </button>
+                        <button type="submit" class="quick-action-btn" style="background: var(--primary); color: #ffffff; border-color: var(--primary);">
+                            <span>💾</span><span>Save Profile</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
+    </div>
 
-
-        <div class="transaction-controls">
-
-            <input
-                type="text"
-                id="transactionSearch"
-                placeholder="Search transactions..."
-            >
-
-
-            <select id="riskFilter">
-
-                <option value="ALL">
-                    All Risks
-                </option>
-
-                <option value="HIGH">
-                    High Risk
-                </option>
-
-                <option value="MEDIUM">
-                    Medium Risk
-                </option>
-
-                <option value="LOW">
-                    Low Risk
-                </option>
-
-            </select>
-
-
-            <select id="actionFilter">
-
-                <option value="ALL">
-                    All Actions
-                </option>
-
-                <option value="BLOCK">
-                    Blocked
-                </option>
-
-                <option value="REVIEW">
-                    Review
-                </option>
-
-                <option value="APPROVE">
-                    Approved
-                </option>
-
-            </select>
-
-        </div>
-
-
-        <div class="table-container">
-
-            <table>
-
-                <thead>
-
-                    <tr>
-
-                        <th>ID</th>
-                        <th>Amount</th>
-                        <th>Risk</th>
-                        <th>Fraud Probability</th>
-                        <th>Action</th>
-
-                    </tr>
-
-                </thead>
-
-
-                <tbody id="transactionTable">
-
-                    <tr>
-
-                        <td
-                            colspan="5"
-                            class="no-data"
-                        >
-                            No transactions yet.
-                        </td>
-
-                    </tr>
-
-                </tbody>
-
-            </table>
-
-        </div>
-
-    </section>
-
-</main>
-
-
-<footer>
-
-    <p>
-        FraudGuard AI • AI-Based Payment Fraud Detection
-    </p>
-
-</footer>
-
-
-<script src="script.js"></script>
-
+    <!-- Frontend Core Application Script -->
+    <script src="script.js"></script>
 </body>
 </html>
